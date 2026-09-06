@@ -374,6 +374,7 @@ function createGroupPickup() {
     showCreateGroupModal(3.1390, 101.6869);
 }
 
+
 function showCreateGroupModal(lat, lng) {
     if (document.querySelector('.modal')) {
         return;
@@ -389,26 +390,31 @@ function showCreateGroupModal(lat, lng) {
             </p>
             <form id="createGroupForm">
                 <div style="margin-bottom:10px;">
-                    <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Select Recycling Center</label>
+                    <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Select Recycling Center <span style="color:red;">*</span></label>
                     <select name="center_id" required style="width:100%;padding:10px;border-radius:10px;border:2px solid #eaf3ec;font-family:inherit;">
                         <option value="">Loading centers...</option>
                     </select>
                 </div>
                 
-                <div style="margin-bottom:10px;">
-                    <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Your Address</label>
-                    <input type="text" name="address" placeholder="Enter your full address" required style="width:100%;padding:10px;border-radius:10px;border:2px solid #eaf3ec;font-family:inherit;">
-                </div>
-                
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
                     <div>
-                        <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Pickup Date</label>
+                        <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Pickup Date <span style="color:red;">*</span></label>
                         <input type="date" name="pickup_date" required style="width:100%;padding:10px;border-radius:10px;border:2px solid #eaf3ec;">
                     </div>
                     <div>
-                        <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Pickup Time</label>
+                        <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Pickup Time <span style="color:red;">*</span></label>
                         <input type="time" name="pickup_time" required style="width:100%;padding:10px;border-radius:10px;border:2px solid #eaf3ec;">
                     </div>
+                </div>
+                
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Your Pickup Address <span style="color:red;">*</span></label>
+                    <input type="text" name="address" placeholder="Enter your full pickup address" required style="width:100%;padding:10px;border-radius:10px;border:2px solid #eaf3ec;font-family:inherit;">
+                </div>
+                
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Estimated Weight (kg) <span style="color:red;">*</span></label>
+                    <input type="number" name="weight" placeholder="e.g., 5" required min="0.5" step="0.5" style="width:100%;padding:10px;border-radius:10px;border:2px solid #eaf3ec;font-family:inherit;">
                 </div>
                 
                 <div style="margin-bottom:10px;">
@@ -428,7 +434,7 @@ function showCreateGroupModal(lat, lng) {
                 </div>
                 
                 <div style="margin-bottom:15px;">
-                    <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Notes (Optional)</label>
+                    <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;">Special Instructions / Notes (Optional)</label>
                     <textarea name="notes" placeholder="Any special instructions..." style="width:100%;padding:10px;border-radius:10px;border:2px solid #eaf3ec;font-family:inherit;min-height:60px;"></textarea>
                 </div>
                 
@@ -462,7 +468,10 @@ function showCreateGroupModal(lat, lng) {
     var dateInput = modal.querySelector('input[name="pickup_date"]');
     var tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    dateInput.value = tomorrow.toISOString().split('T')[0];
+    var year = tomorrow.getFullYear();
+    var month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    var day = String(tomorrow.getDate()).padStart(2, '0');
+    dateInput.value = year + '-' + month + '-' + day;
     
     modal.querySelector('#createGroupForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -488,13 +497,15 @@ function showCreateGroupModal(lat, lng) {
                 submitBtn.innerHTML = '<i class="fas fa-plus"></i> Create Group';
             }
         })
-        .catch(() => {
+        .catch((error) => {
+            console.error('Error:', error);
             showToast('❌ Error creating group');
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-plus"></i> Create Group';
         });
     });
 }
+   
 
 function joinGroup(groupId) {
     if (!confirm('Join this group pickup? You can share delivery costs with others.')) return;
@@ -503,12 +514,14 @@ function joinGroup(groupId) {
     if (!address) return;
     
     var weight = prompt('Estimated weight (kg):', '1');
-    if (!weight) return;
+    if (!weight || weight <= 0) return;
+    
+    var description = prompt('Brief description of items:', '');
     
     fetch('join_group_pickup.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `group_id=${groupId}&address=${encodeURIComponent(address)}&weight=${weight}`
+        body: `group_id=${groupId}&address=${encodeURIComponent(address)}&weight=${weight}&description=${encodeURIComponent(description || '')}`
     })
     .then(response => response.json())
     .then(data => {

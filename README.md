@@ -8,7 +8,7 @@ The platform connects users with recycling services and centres, allowing them t
 
 ---
 
-]The Problem
+The Problem
 
 Although recycling facilities and collection services are available, recycling can still be inconvenient for many people.
 

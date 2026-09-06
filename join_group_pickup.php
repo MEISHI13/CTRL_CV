@@ -13,9 +13,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $groupId = $_POST['group_id'] ?? 0;
     $address = $_POST['address'] ?? '';
     $weight = $_POST['weight'] ?? null;
+    $description = $_POST['description'] ?? null;
     
     if (empty($address)) {
         echo json_encode(['error' => 'Address is required']);
+        exit();
+    }
+    
+    if (empty($weight) || $weight <= 0) {
+        echo json_encode(['error' => 'Please enter a valid estimated weight']);
         exit();
     }
     
@@ -23,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id'],
         $groupId,
         $address,
-        $weight
+        $weight,
+        $description
     );
     
     if (isset($result['error'])) {

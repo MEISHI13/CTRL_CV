@@ -135,10 +135,11 @@ function createGroupPickup($userId, $centerId, $pickupDate, $pickupTime, $maxPar
         
         $groupId = $pdo->lastInsertId();
         
-        // Add creator as first participant
+        // Add creator as first participant - with empty address as placeholder
+        // (actual address is added in create_group_pickup.php with the form data)
         $stmt = $pdo->prepare("
-            INSERT INTO group_pickup_participants (group_pickup_id, user_id, status)
-            VALUES (:group_id, :user_id, 'accepted')
+            INSERT INTO group_pickup_participants (group_pickup_id, user_id, address, status)
+            VALUES (:group_id, :user_id, '', 'accepted')
         ");
         $stmt->execute([
             'group_id' => $groupId,
@@ -184,10 +185,10 @@ function joinGroupPickup($userId, $groupId, $address, $estimatedWeight = null, $
         
         $pdo->beginTransaction();
         
-        // Add participant
+        // Add participant - FIXED: Added status field
         $stmt = $pdo->prepare("
-            INSERT INTO group_pickup_participants (group_pickup_id, user_id, address, estimated_weight, item_description)
-            VALUES (:group_id, :user_id, :address, :weight, :description)
+            INSERT INTO group_pickup_participants (group_pickup_id, user_id, address, estimated_weight, item_description, status)
+            VALUES (:group_id, :user_id, :address, :weight, :description, 'accepted')
         ");
         $stmt->execute([
             'group_id' => $groupId,
